@@ -21,6 +21,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   Uint8List? _image;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -36,6 +37,28 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() {
       _image = im;
     });
+  }
+
+  void signUpUser() async {
+    setState(() {
+      _isLoading = true;
+    });
+    String res = await AuthMethods().signUpUser(
+      email: _emailController.text,
+      password: _passwordController.text,
+      username: _usernameController.text,
+      bio: _bioController.text,
+      file: _image!,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (res != 'success') {
+      // ignore: use_build_context_synchronously
+      showSnackBar(res, context);
+    }
   }
 
   @override
@@ -121,15 +144,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               // login button
               InkWell(
-                onTap: () async {
-                  String res = await AuthMethods().signUpUser(
-                    email: _emailController.text,
-                    password: _passwordController.text,
-                    username: _usernameController.text,
-                    bio: _bioController.text,
-                    file: _image!,
-                  );
-                },
+                onTap: signUpUser,
                 child: Container(
                   width: double.infinity,
                   alignment: Alignment.center,
@@ -142,7 +157,13 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     color: blueColor,
                   ),
-                  child: const Text("Sign up"),
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: primaryColor,
+                          ),
+                        )
+                      : const Text("Sign up"),
                 ),
               ),
               const SizedBox(
@@ -157,7 +178,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     padding: const EdgeInsets.symmetric(
                       vertical: 8,
                     ),
-                    child: const Text("Don't have an account? "),
+                    child: const Text("Already have an account? "),
                   ),
                   GestureDetector(
                     onTap: () {},
@@ -166,7 +187,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         vertical: 8,
                       ),
                       child: const Text(
-                        "Sign up.",
+                        "Sign in.",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
